@@ -7,8 +7,9 @@ const hbs = require("hbs");
 const geocode = require("./utils/geocode");
 const forecast = require("./utils/forecast");
 
-// initializing express server
+// initializing express server and port
 const app = express();
+const port = process.env.PORT || 3000;
 
 // initializing paths
 const publicDirectoryPath = path.join(__dirname, "../public");
@@ -50,28 +51,24 @@ app.get("/weather", (req, res) => {
         });
     }
 
-    geocode(
-        req.query.address,
-        (geocodeError, { latitude, longitude } = {}) => {
-            if (geocodeError) {
-                return res.send({
-                    error: geocodeError,
-                });
-            }
-
-            forecast(latitude, longitude, (forecastError, forecastData) => {
-                if (forecastError) {
-                    return res.send({
-                        error: forecastError,
-                    });
-                }
-                res.send({
-                    forecast: forecastData
-                });
+    geocode(req.query.address, (geocodeError, { latitude, longitude } = {}) => {
+        if (geocodeError) {
+            return res.send({
+                error: geocodeError,
             });
         }
-    );
 
+        forecast(latitude, longitude, (forecastError, forecastData) => {
+            if (forecastError) {
+                return res.send({
+                    error: forecastError,
+                });
+            }
+            res.send({
+                forecast: forecastData,
+            });
+        });
+    });
 });
 
 // help 404 page route
@@ -91,6 +88,6 @@ app.get("*", (req, res) => {
 });
 
 // server running
-app.listen(3000, () => {
-    console.log("Server Connected!");
+app.listen(port, () => {
+    console.log("Server Connected on port " + port + "!");
 });
